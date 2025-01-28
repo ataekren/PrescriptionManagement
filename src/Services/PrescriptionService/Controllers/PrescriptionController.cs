@@ -123,4 +123,30 @@ public class PrescriptionController : ControllerBase
             return StatusCode(500, "An error occurred while getting prescriptions");
         }
     }
+
+    //public endpoint that returns prescriptions that are not completed
+    [HttpGet("not-completed")]
+    [AllowAnonymous]
+    public async Task<ActionResult<PagedResponse<PrescriptionResponse>>> GetNotCompletedPrescriptions(
+        [FromQuery] PaginationRequest pagination)
+    {
+        try
+        {
+            var prescriptions = await _prescriptionService.GetPrescriptionsAsync(status: PrescriptionStatus.PartiallySubmitted);
+        
+            var totalCount = prescriptions.Count();
+            var items = prescriptions
+                .Skip((pagination.PageNumber - 1) * pagination.PageSize)
+                .Take(pagination.PageSize)
+                .ToList();
+
+            var response = new PagedResponse<PrescriptionResponse>(items, pagination.PageNumber, pagination.PageSize, totalCount);
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting prescriptions");
+            return StatusCode(500, "An error occurred while getting prescriptions");
+        }
+    }
 } 
