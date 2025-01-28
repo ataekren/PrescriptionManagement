@@ -1,0 +1,13 @@
+# Exclude Visual Studio temporary files and settings
+.vs/
+*.user
+*.suo
+*.cache
+*.log
+
+# Exclude build outputs
+bin/
+obj/
+
+# Exclude Docker-related temporary files
+docker-compose.override.yml
