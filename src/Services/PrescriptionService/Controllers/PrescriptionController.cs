@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PrescriptionService.Services;
+using Shared.Models;
 using SharedKernel.Models.Prescriptions;
 using SharedKernel.Models.Prescriptions.DTOs;
 using System.Security.Claims;
@@ -8,7 +9,7 @@ using System.Security.Claims;
 namespace PrescriptionService.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/v1/[controller]")]
 [Authorize]
 public class PrescriptionController : ControllerBase
 {
@@ -87,31 +88,39 @@ public class PrescriptionController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<PrescriptionResponse>>> GetPrescriptions(
-        [FromQuery] SharedKernel.Models.Prescriptions.PrescriptionStatus? status = null)
+    [Authorize(Roles = "Doctor,Patient")]
+    public async Task<ActionResult<PagedResponse<PrescriptionResponse>>> GetPrescriptions(
+        [FromQuery] PrescriptionStatus? status,
+        [FromQuery] PaginationRequest pagination)
     {
         try
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-            var role = User.FindFirst(ClaimTypes.Role)?.Value;
-
-            if (userId == 0 || string.IsNullOrEmpty(role))
+            if (userId == 0)
             {
-                _logger.LogWarning("User ID or role not found in token");
-                return Unauthorized(new { message = "Invalid user identification" });
+                return Unauthorized();
             }
 
+            var role = User.FindFirst(ClaimTypes.Role)?.Value;
             var prescriptions = await _prescriptionService.GetPrescriptionsAsync(
                 role == "Doctor" ? userId : null,
-                role == "Pharmacy" ? userId : null,
+                null,  // pharmacyId is not needed for Doctor/Patient roles
                 status
             );
-            return Ok(prescriptions);
+        
+            var totalCount = prescriptions.Count();
+            var items = prescriptions
+                .Skip((pagination.PageNumber - 1) * pagination.PageSize)
+                .Take(pagination.PageSize)
+                .ToList();
+
+            var response = new PagedResponse<PrescriptionResponse>(items, pagination.PageNumber, pagination.PageSize, totalCount);
+            return Ok(response);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving prescriptions");
-            return BadRequest(new { message = ex.Message });
+            _logger.LogError(ex, "Error getting prescriptions");
+            return StatusCode(500, "An error occurred while getting prescriptions");
         }
     }
 } 

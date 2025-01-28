@@ -4,11 +4,12 @@ using MedicineService.Repositories;
 using SharedKernel.Models;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Text.Json;
+using Shared.Models;
 
 namespace MedicineService.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/v1/[controller]")]
 public class MedicineController : ControllerBase
 {
     private readonly ExcelService _excelService;
@@ -108,29 +109,36 @@ public class MedicineController : ControllerBase
     }
 
     [HttpGet("active")]
-    public async Task<ActionResult<IEnumerable<Medicine>>> GetActiveMedicines()
+    public async Task<ActionResult<PagedResponse<Medicine>>> GetActiveMedicines([FromQuery] PaginationRequest pagination)
     {
         try
         {
-            var cacheKey = "active_medicines";
+            var cacheKey = $"active_medicines_page_{pagination.PageNumber}_{pagination.PageSize}";
             var cachedMedicines = await _cache.GetStringAsync(cacheKey);
 
             if (cachedMedicines != null)
             {
-                var cachedMedicinesList = JsonSerializer.Deserialize<IEnumerable<Medicine>>(cachedMedicines);
-                Console.WriteLine("Returning cached medicines");
-                return Ok(cachedMedicinesList);
+                var cachedResponse = JsonSerializer.Deserialize<PagedResponse<Medicine>>(cachedMedicines);
+                return Ok(cachedResponse);
             }
 
             var medicines = await _medicineRepository.GetAllAsync();
             var activeMedicines = medicines.Where(m => m.IsActive).ToList();
+        
+            var totalCount = activeMedicines.Count;
+            var items = activeMedicines
+                .Skip((pagination.PageNumber - 1) * pagination.PageSize)
+                .Take(pagination.PageSize)
+                .ToList();
 
-            await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(activeMedicines), new DistributedCacheEntryOptions
+            var response = new PagedResponse<Medicine>(items, pagination.PageNumber, pagination.PageSize, totalCount);
+
+            await _cache.SetStringAsync(cacheKey, JsonSerializer.Serialize(response), new DistributedCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30)
             });
 
-            return Ok(activeMedicines);
+            return Ok(response);
         }
         catch (Exception ex)
         {
