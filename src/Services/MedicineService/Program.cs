@@ -2,6 +2,8 @@ using MedicineService.Repositories;
 using MedicineService.Services;
 using MedicineService.Settings;
 using Microsoft.Extensions.DependencyInjection;
+using Quartz;
+using MedicineService.Jobs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +14,21 @@ builder.Services.Configure<MongoDbSettings>(
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<ExcelService>();
 builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
+
+// Configure Quartz
+builder.Services.AddQuartz(q =>
+{
+    var jobKey = new JobKey("MedicineSyncJob");
+    
+    q.AddJob<MedicineSyncJob>(opts => opts.WithIdentity(jobKey));
+    
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("MedicineSyncJob-trigger")
+        .WithCronSchedule("0 0 22 ? * SUN")); // Run at 22:00 every Sunday
+});
+
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 // Add Redis caching with authentication from configuration
 builder.Services.AddStackExchangeRedisCache(options =>

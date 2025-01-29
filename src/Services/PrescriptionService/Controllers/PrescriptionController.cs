@@ -14,13 +14,16 @@ namespace PrescriptionService.Controllers;
 public class PrescriptionController : ControllerBase
 {
     private readonly IPrescriptionService _prescriptionService;
+    private readonly INotificationService _notificationService;
     private readonly ILogger<PrescriptionController> _logger;
 
     public PrescriptionController(
         IPrescriptionService prescriptionService,
+        INotificationService notificationService,
         ILogger<PrescriptionController> logger)
     {
         _prescriptionService = prescriptionService;
+        _notificationService = notificationService;
         _logger = logger;
     }
 
@@ -147,6 +150,21 @@ public class PrescriptionController : ControllerBase
         {
             _logger.LogError(ex, "Error getting prescriptions");
             return StatusCode(500, "An error occurred while getting prescriptions");
+        }
+    }
+
+    [HttpPost("send-incomplete-notifications")]
+    public async Task<IActionResult> SendIncompleteNotifications()
+    {
+        try
+        {
+            await _notificationService.SendIncompleteNotificationsAsync();
+            return Ok(new { message = "Notifications sent successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending incomplete prescription notifications");
+            return StatusCode(500, new { message = "Error sending notifications" });
         }
     }
 } 

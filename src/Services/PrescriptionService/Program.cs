@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PrescriptionService.Data;
 using PrescriptionService.Services;
+using Quartz;
+using PrescriptionService.Jobs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +14,22 @@ builder.Services.AddDbContext<PrescriptionDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IPrescriptionService, PrescriptionService.Services.PrescriptionService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+
+// Configure Quartz
+builder.Services.AddQuartz(q =>
+{
+    var jobKey = new JobKey("NotificationJob");
+    
+    q.AddJob<NotificationJob>(opts => opts.WithIdentity(jobKey));
+    
+    q.AddTrigger(opts => opts
+        .ForJob(jobKey)
+        .WithIdentity("NotificationJob-trigger")
+        .WithCronSchedule("0 0 1 * * ?")); // Run at 1:00 AM every day
+});
+
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
