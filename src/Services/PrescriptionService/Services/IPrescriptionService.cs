@@ -9,4 +9,5 @@ public interface IPrescriptionService
     Task<PrescriptionResponse> SubmitPrescriptionAsync(int pharmacyId, SubmitPrescriptionRequest request);
     Task<PrescriptionResponse> GetPrescriptionAsync(int id);
     Task<List<PrescriptionResponse>> GetPrescriptionsAsync(int? doctorId = null, int? pharmacyId = null, PrescriptionStatus? status = null);
+    Task<List<PrescriptionResponse>> GetPrescriptionsByPatientTcAsync(string patientTc);
 } 

@@ -153,6 +153,27 @@ public class PrescriptionController : ControllerBase
         }
     }
 
+    [HttpGet("by-tc")]
+    [AllowAnonymous]
+    public async Task<ActionResult<List<PrescriptionResponse>>> GetPrescriptionsByPatientTc([FromQuery] string patientTc)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(patientTc))
+            {
+                return BadRequest(new { message = "PatientTc is required" });
+            }
+            
+            var prescriptions = await _prescriptionService.GetPrescriptionsByPatientTcAsync(patientTc);
+            return Ok(prescriptions);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving prescriptions for patient {PatientTc}", patientTc);
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpPost("send-incomplete-notifications")]
     public async Task<IActionResult> SendIncompleteNotifications()
     {
@@ -165,6 +186,22 @@ public class PrescriptionController : ControllerBase
         {
             _logger.LogError(ex, "Error sending incomplete prescription notifications");
             return StatusCode(500, new { message = "Error sending notifications" });
+        }
+    }
+
+    // mock ip for TC lookup
+    [HttpGet("mock-lookup")]
+    [AllowAnonymous]
+    public async Task<IActionResult> MockLookup(int id)
+    {
+        try
+        {
+            return Ok("Ata Ekren");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting patient by TC");
+            return StatusCode(500, new { message = "Error getting patient" });
         }
     }
 } 

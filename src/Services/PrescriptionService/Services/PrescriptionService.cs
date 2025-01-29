@@ -110,6 +110,19 @@ public class PrescriptionService : IPrescriptionService
         return prescriptions.Select(MapToResponse).ToList();
     }
 
+    public async Task<List<PrescriptionResponse>> GetPrescriptionsByPatientTcAsync(string patientTc)
+    {
+        var prescriptions = await _context.Prescriptions
+            .Include(p => p.Items)
+            .Include(p => p.Submissions)
+                .ThenInclude(s => s.SubmittedMedicineBarcodes)
+            .Where(p => p.PatientTc == patientTc)
+            .OrderByDescending(p => p.CreatedDate)
+            .ToListAsync();
+
+        return prescriptions.Select(MapToResponse).ToList();
+    }
+
     private static PrescriptionResponse MapToResponse(Prescription prescription)
     {
         return new PrescriptionResponse(
