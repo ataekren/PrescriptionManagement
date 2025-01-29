@@ -1,6 +1,7 @@
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Ocelot.Provider.Polly;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,7 +40,8 @@ builder.Configuration
     .AddJsonFile("ocelot.json", optional: false, reloadOnChange: true)
     .AddEnvironmentVariables();
 
-builder.Services.AddOcelot(builder.Configuration);
+builder.Services.AddOcelot(builder.Configuration)
+    .AddPolly();
 
 var app = builder.Build();
 
