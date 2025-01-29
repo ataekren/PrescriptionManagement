@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import debounce from "lodash/debounce"
 
 interface PrescriptionItem {
   medicineBarcode: string
@@ -29,16 +30,18 @@ export default function CreatePrescription() {
   const [items, setItems] = useState<PrescriptionItem[]>([])
   const [error, setError] = useState("")
   const [medicines, setMedicines] = useState<Medicine[]>([])
-  const [searchQueries, setSearchQueries] = useState<{ [key: number]: string }>({})
+  const [searchQuery, setSearchQuery] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
-    fetchMedicines()
+    // Initial medicines fetch is removed from here
   }, [])
 
   const fetchMedicines = async () => {
     try {
-      const response = await fetch("/api/v1/medicine/active?pageNumber=1&pageSize=10000")
+      const response = await fetch("/api/v1/medicine/active?pageNumber=1&pageSize=100")
       if (response.ok) {
         const data = await response.json()
         setMedicines(data.items)
@@ -47,6 +50,34 @@ export default function CreatePrescription() {
       }
     } catch (error) {
       setError("An error occurred while fetching medicines")
+    }
+  }
+
+  const debouncedSearch = useCallback(
+    debounce(async (query: string) => {
+      setIsLoading(true)
+      try {
+        const response = await fetch(`/api/v1/medicine/search?name=${query}`)
+        if (response.ok) {
+          const data = await response.json()
+          setMedicines(data)
+        } else {
+          setError("Failed to search medicines")
+        }
+      } catch (error) {
+        setError("An error occurred while searching medicines")
+      }
+      setIsLoading(false)
+    }, 300),
+    [],
+  )
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value)
+    if (value) {
+      debouncedSearch(value)
+    } else {
+      fetchMedicines()
     }
   }
 
@@ -83,17 +114,7 @@ export default function CreatePrescription() {
       price: medicine.price,
     }
     setItems(newItems)
-    setSearchQueries({ ...searchQueries, [index]: "" })
-    document.body.click() // This will close the popover
-  }
-
-  const handleSearchChange = (index: number, value: string) => {
-    setSearchQueries({ ...searchQueries, [index]: value })
-  }
-
-  const getFilteredMedicines = (index: number) => {
-    const query = searchQueries[index]?.toLowerCase() || ""
-    return query === "" ? medicines : medicines.filter((medicine) => medicine.name.toLowerCase().includes(query))
+    setSearchQuery("")
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -146,7 +167,14 @@ export default function CreatePrescription() {
           )}
           {items.map((item, index) => (
             <div key={index} className="space-y-2 p-4 border rounded-lg">
-              <Popover>
+              <Popover
+                onOpenChange={(open) => {
+                  setIsPopoverOpen(open)
+                  if (open && medicines.length === 0) {
+                    fetchMedicines()
+                  }
+                }}
+              >
                 <PopoverTrigger asChild>
                   <Button variant="outline" role="combobox" className="w-full justify-between">
                     {item.medicineName || "Search medicine..."}
@@ -157,13 +185,14 @@ export default function CreatePrescription() {
                   <Command>
                     <CommandInput
                       placeholder="Search medicine..."
-                      value={searchQueries[index] || ""}
-                      onValueChange={(value) => handleSearchChange(index, value)}
+                      value={searchQuery}
+                      onValueChange={handleSearchChange}
                     />
                     <CommandList>
-                      <CommandEmpty>No medicine found.</CommandEmpty>
+                      <CommandEmpty>{isLoading ? "Searching..." : "No medicine found."}</CommandEmpty>
+                      {isLoading && <div className="p-2 text-center">Loading...</div>}
                       <CommandGroup>
-                        {getFilteredMedicines(index).map((medicine) => (
+                        {medicines.map((medicine) => (
                           <CommandItem
                             key={medicine.id}
                             value={medicine.name}
