@@ -37,19 +37,20 @@ services:
     environment:
       - ACCEPT_EULA=Y
       - MSSQL_SA_PASSWORD=YourStrong@Passw0rd
-      - MSSQL_PID=Express
+      - MSSQL_PID=Developer
+      - MSSQL_AGENT_ENABLED=true
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "YourStrong@Passw0rd" -Q "SELECT 1" || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
     ports:
       - "1433:1433"
     volumes:
       - sqlserver_data:/var/opt/mssql
     networks:
       - prescription-network
-    healthcheck:
-      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "YourStrong@Passw0rd" -Q "SELECT 1" -b -o /dev/null
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
 
   redis:
     image: redis:latest
@@ -58,6 +59,66 @@ services:
       - REDIS_PASSWORD=your_secure_password
     ports:
       - "6379:6379"
+    networks:
+      - prescription-network
+
+  gateway:
+    build:
+      context: .
+      dockerfile: src/Services/APIGateway/Dockerfile
+    container_name: gateway
+    ports:
+      - "5000:80"
+      - "5001:443"
+    depends_on:
+      - authentication
+      - medicine
+      - prescription
+    networks:
+      - prescription-network
+
+  authentication:
+    build:
+      context: .
+      dockerfile: src/Services/AuthService/Dockerfile
+    container_name: authentication
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=AuthDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True
+    ports:
+      - "5010:80"
+      - "5011:443"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - prescription-network
+
+  medicine:
+    build:
+      context: .
+      dockerfile: src/Services/MedicineService/Dockerfile
+    container_name: medicine
+    ports:
+      - "5020:80"
+      - "5021:443"
+    depends_on:
+      - mongodb
+    networks:
+      - prescription-network
+
+  prescription:
+    build:
+      context: .
+      dockerfile: src/Services/PrescriptionService/Dockerfile
+    container_name: prescription
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=PrescriptionDb;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True
+    ports:
+      - "5030:80"
+      - "5031:443"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
     networks:
       - prescription-network
 

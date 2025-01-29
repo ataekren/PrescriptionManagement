@@ -1,5 +1,6 @@
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,17 +9,25 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Configure logging
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+builder.Logging.SetMinimumLevel(LogLevel.Debug);
+
+// Add health checks
+builder.Services.AddHealthChecks();
+
 // Add CORS configuration
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowNextJsFrontend",
+    options.AddPolicy("AllowAll",
         builder =>
         {
             builder
-                .WithOrigins("http://localhost:3000")
+                .AllowAnyOrigin()
                 .AllowAnyMethod()
-                .AllowAnyHeader()
-                .AllowCredentials();
+                .AllowAnyHeader();
         });
 });
 
@@ -41,14 +50,20 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Add health check endpoint
+app.MapHealthChecks("/health");
+
 // Use CORS before routing
-app.UseCors("AllowNextJsFrontend");
+app.UseCors("AllowAll");
+
+// Add error handling
+app.UseExceptionHandler("/Error");
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
-// Configure Ocelot middleware
+// Configure Ocelot middleware with error handling
 await app.UseOcelot();
 
 app.Run("http://localhost:5000");

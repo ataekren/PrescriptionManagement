@@ -2,7 +2,7 @@ namespace Shared.Models;
 
 public class PaginationRequest
 {
-    private const int MaxPageSize = 50;
+    private const int MaxPageSize = 10000;
     private int _pageSize = 10;
     
     public int PageNumber { get; set; } = 1;

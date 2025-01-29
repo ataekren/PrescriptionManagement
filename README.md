@@ -1,161 +1,103 @@
 # Prescription Management System
 
-## Overview
-A comprehensive prescription and doctor visit management system for Saglik Bakanligi pharmacies. The system facilitates prescription creation by doctors, prescription management by pharmacies, and includes medicine lookup capabilities with automated notifications for incomplete prescriptions.
+A modern, microservices-based prescription management system designed to streamline the process of managing medical prescriptions, connecting patients, doctors, and pharmacies.
 
-## System Architecture
-The system is built using a microservices architecture with the following components:
+## Project Overview
 
-### Core Services
-1. **API Gateway**
-   - Single entry point for all client requests
-   - Routes requests to appropriate microservices
-   - Handles authentication and cross-cutting concerns
-   - Implements versioning and pagination
+The Prescription Management System is a comprehensive solution built using .NET microservices architecture with a modern frontend. The system facilitates secure prescription handling, user authentication, and seamless communication between healthcare providers and patients.
 
-2. **Medicine Service**
-   - Manages medicine database
-   - Provides medicine search with autocomplete
-   - Weekly updates from Saglik Bakanligi (Sundays at 22:00)
-   - NoSQL storage for medicine data
+## Architecture
 
-3. **Prescription Service**
-   - Handles prescription creation by doctors
-   - Manages patient visit records
-   - JWT authentication for doctors
-   - Prescription submission for pharmacies
+The system follows a microservices architecture pattern with the following components:
 
-4. **Notification Service**
-   - Monitors incomplete prescriptions
-   - Sends daily reports to pharmacies at 01:00
-   - Queue-based asynchronous processing
+### Backend Services
+- **API Gateway**: Routes and manages requests to appropriate microservices
+- **Authentication Service**: Handles user authentication, authorization, and user management
+- **Medicine Service**: Manages medicine catalog, inventory, and medicine-related operations
+- **Prescription Service**: Handles prescription creation, management, and tracking
 
-### Infrastructure Components
-- **Redis Cache**: For medicine names and frequently accessed data
-- **RabbitMQ**: Message queue for asynchronous operations
-- **NoSQL Database**: For medicine data storage
-- **JWT Authentication**: For secure API access
+### Frontend
+- Modern web application built with Next.js
+- Responsive design for optimal user experience
 
-## Key Features
+## Technology Stack
 
-### For Doctors
-- Secure prescription creation
-- Patient visit recording
-- JWT-based authentication
-- TC number verification via mock API
+- **Backend**: 
+  - .NET Core
+  - Microservices Architecture
+  - Docker Containerization
+  - Entity Framework Core
+  
+- **Frontend**:
+  - Next.js 14
+  - React 18
+  - Tailwind CSS
+  - Radix UI Components
+  - TypeScript
 
-### For Pharmacies
-- Prescription submission system
-- Medicine search with autocomplete
-- Authentication system
-- Incomplete prescription notifications
-- Price management for medicines
-
-### System Features
-- Automated medicine list updates
-- Nightly prescription status notifications
-- Caching for performance optimization
-- Queue-based processing
-- API versioning and pagination
-
-## Technical Requirements
-
-### Development
-- .NET Core latest version
-- Docker support
-- Cloud-ready architecture
-- API Gateway implementation
-- Caching with Redis
-- Message Queue (RabbitMQ/Azure Messaging)
-- NoSQL database for medicine data
-
-### Authentication
-- JWT-based authentication
-- Role-based access control
-- Secure API endpoints
-
-### API Design
-- RESTful API architecture
-- Versioning support
-- Pagination implementation
-- Swagger/OpenAPI documentation
-
-## Project Structure
-```
-PrescriptionManagementSystem/
-├── Services/
-│   ├── MedicineService/
-│   │   └── [Medicine management implementation]
-│   ├── PrescriptionService/
-│   │   └── [Prescription handling implementation]
-│   └── NotificationService/
-│       └── [Notification system implementation]
-├── Infrastructure/
-│   ├── APIGateway/
-│   │   └── [API Gateway configuration]
-│   ├── RedisCacheService/
-│   │   └── [Caching implementation]
-│   └── RabbitMQService/
-│       └── [Message queue implementation]
-├── Shared/
-│   └── SharedKernel/
-│       └── [Shared components and utilities]
-└── AuthService/
-    └── [Authentication implementation]
-```
-
-## Setup and Deployment
+## Getting Started
 
 ### Prerequisites
-- .NET Core SDK
-- Docker
-- Redis
-- RabbitMQ
-- NoSQL Database (MongoDB recommended)
+- .NET SDK
+- Docker and Docker Compose
+- Your preferred IDE (Visual Studio recommended)
 
-### Development Setup
-1. Clone the repository
-2. Install dependencies
-3. Configure environment variables
-4. Start required services (Redis, RabbitMQ)
-5. Run the application
+### Installation
 
-### Docker Deployment
+1. Clone the repository:
 ```bash
-docker-compose up -d
+git clone [repository-url]
 ```
 
-## API Documentation
+2. Navigate to the project directory:
+```bash
+cd PrescriptionManagementSystem
+```
 
-### Medicine Service API
-- `GET /api/v1/medicines/search` - Search medicines with autocomplete
-- `POST /api/v1/medicines/update` - Update medicine database
+3. Start the backend services using Docker Compose:
+```bash
+docker-compose up
+```
 
-### Prescription Service API
-- `POST /api/v1/prescriptions` - Create new prescription
-- `GET /api/v1/prescriptions` - List prescriptions
-- `PUT /api/v1/prescriptions/{id}` - Update prescription
+4. Start the frontend development server:
+```bash
+cd frontend/prescriptionsystem
+npm install
+npm run dev
+```
 
-### Authentication API
-- `POST /api/v1/auth/login` - User login
-- `POST /api/v1/auth/verify` - Verify token
+## Project Structure
 
-## Security Considerations
-- JWT token-based authentication
-- Role-based access control
-- Secure API gateway
-- Data encryption
-- Rate limiting
+```
+PrescriptionManagementSystem/
+├── .github/                    # GitHub workflows and CI/CD configurations
+├── frontend/                   # Frontend application
+│   └── prescriptionsystem/    # Next.js frontend application
+├── src/
+│   ├── Services/              # Microservices
+│   │   ├── APIGateway/       # API Gateway for routing requests
+│   │   ├── AuthService/      # Authentication and user management
+│   │   ├── MedicineService/  # Medicine catalog and inventory
+│   │   └── PrescriptionService/ # Prescription management
+│   └── Shared/               # Shared libraries and utilities
+├── docker-compose.yml        # Docker composition configuration
+└── README.md                 # Project documentation
+```
 
-## Monitoring and Maintenance
-- Logging implementation
-- Performance monitoring
-- Error tracking
-- Regular backups
-- System health checks
+## Development
 
-## Contributing
-[Contributing guidelines]
+To run the project locally for development:
 
-## License
-[License information] 
+1. Start the backend services:
+```bash
+docker-compose up
+```
+
+2. Start the frontend development server:
+```bash
+cd frontend/prescriptionsystem
+npm install
+npm run dev
+```
+
+The frontend application will be available at `http://localhost:3000`

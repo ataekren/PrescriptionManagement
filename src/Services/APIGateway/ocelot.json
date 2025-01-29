@@ -5,20 +5,30 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 5001
+          "Host": "authentication",
+          "Port": 80
         }
       ],
       "UpstreamPathTemplate": "/api/v1/auth/{everything}",
-      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "QoSOptions": {
+        "ExceptionsAllowedBeforeBreaking": 3,
+        "DurationOfBreak": 1000,
+        "TimeoutValue": 5000
+      },
+      "HttpHandlerOptions": {
+        "AllowAutoRedirect": false,
+        "UseCookieContainer": false,
+        "UseTracing": true
+      }
     },
     {
       "DownstreamPathTemplate": "/api/v1/medicine/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 5002
+          "Host": "medicine",
+          "Port": 80
         }
       ],
       "UpstreamPathTemplate": "/api/v1/medicine/{everything}",
@@ -29,8 +39,8 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 5003
+          "Host": "prescription",
+          "Port": 80
         }
       ],
       "UpstreamPathTemplate": "/api/v1/prescription/{everything}",
@@ -38,6 +48,11 @@
     }
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "http://localhost:5000"
+    "BaseUrl": "http://localhost:5000",
+    "RequestIdKey": "OcRequestId",
+    "DownstreamScheme": "http",
+    "HttpHandlerOptions": {
+      "UseTracing": true
+    }
   }
 }
