@@ -147,6 +147,14 @@ public class MedicineController : ControllerBase
         }
     }
 
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchMedicines(string name)  
+    {  
+        var medicines = await _medicineRepository.GetAllAsync(); 
+        var filteredMedicines = medicines.Where(m => m.Name.Contains(name, StringComparison.OrdinalIgnoreCase)).ToList();  
+        return Ok(filteredMedicines);  
+    }
+
     public class SyncResult
     {
         public int NewMedicinesCount { get; set; }
