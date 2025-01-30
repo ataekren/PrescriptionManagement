@@ -1,3 +1,8 @@
+## 🔗 Links  
+- [Demo Video Link](https://youtu.be/aRHAeW3X7GM)
+- [Frontend Deployment](https://lylcwhwerzri68df.vercel.app/)
+- [GitHub Repository Link](https://github.com/ataekren/PrescriptionManagement)
+
 # Prescription Management System
 
 A modern, microservices-based prescription management system designed to streamline the process of managing medical prescriptions, connecting patients, doctors, and pharmacies.
