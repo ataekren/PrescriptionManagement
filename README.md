@@ -6,6 +6,10 @@ A modern, microservices-based prescription management system designed to streaml
 
 The Prescription Management System is a comprehensive solution built using .NET microservices architecture with a modern frontend. The system facilitates secure prescription handling, user authentication, and seamless communication between healthcare providers and patients.
 
+## 📊 Data Model
+
+![ER](https://github.com/ataekren/PrescriptionManagement/blob/main/ER.png?raw=true)
+
 ## Architecture
 
 The system follows a microservices architecture pattern with the following components:
