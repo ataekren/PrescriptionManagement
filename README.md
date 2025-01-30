@@ -24,6 +24,49 @@ The system follows a microservices architecture pattern with the following compo
 - Modern web application built with Next.js
 - Responsive design for optimal user experience
 
+## Design
+
+### User Roles
+The system implements two distinct user roles:
+
+**Doctor**
+- Add medicines to prescription list and issue prescriptions
+
+**Pharmacist**
+- Process prescriptions
+- Update prescription status
+
+### Security
+- JWT-based authentication with configurable token expiration
+- Role-based authorization
+- Data encryption for sensitive information
+- Secure API communication between services
+
+### Key Entities
+- **Users**
+- **Prescriptions**
+- **Medications**
+- **Prescription Items**
+- **Pharmacies**
+- **Submissions**
+
+### Use Cases
+
+**Prescription Management**
+- Doctors create and issue prescriptions
+- Pharmacists process prescriptions
+- System tracks prescription status
+
+**Medicine Management**
+- Sync medicine database with external source
+- Track medicine inventory
+
+**User Management**
+- User registration and authentication
+- Role-based access control
+- Profile management
+- Password recovery
+
 ## Technology Stack
 
 - **Backend**: 
